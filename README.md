@@ -1,20 +1,72 @@
-# ebpf-usb-inspector
+# ebpf-usb
 
-eBPFを使って、USBのManInTheMiddleをするためのツールです。
+Heavily based on: https://github.com/gpioblink/ebpf-usb-inspector
 
-## 使用方法
+## Usage
 
-`$sudo python3 bccusb.py`を実行するだけ。
+```
+usage: ebpf-usb.py [-h] [--vendor-id VENDOR_ID] [--product-id PRODUCT_ID] [--out-only] [--in-only]
 
-中身開いて、`# change this id to your USB device`の部分のvendorIdを取得したいUSBデバイスのものに変えてお使いください。
+Monitor USB traffic using eBPF
 
-## 使用方法(キーボード用)
+options:
+  -h, --help            show this help message and exit
+  --vendor-id VENDOR_ID, -v VENDOR_ID
+                        The vendor id, expressed in hex
+  --product-id PRODUCT_ID, -p PRODUCT_ID
+                        The product id, expressed in hex
+  --out-only, -o        Filter out all incoming messages
+  --in-only, -i         Filter out all outgoing messages
+```
 
-キーボード用に、押したキーの値が表示されたりするツールも作りました。
-`$sudo python3 bcckeyboard.py`を実行してください。
+## Example output
 
-## 使用方法(旧: こちらは正しく動作しません)
+```
+Starting capture [VID=unspecified and PID=unspecified]
+1: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
 
-`$ sudo bpftrace usb-bw.b`するだけ
+2: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
 
-参考: https://blog.habets.se/2020/08/Measuring-USB-with-bpftrace.html
+3: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 07 05 00 00                                       ....
+
+4: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+5: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+6: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+7: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+8: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+9: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 07 01 00 00                                       ....
+
+10: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+11: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+12: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 00 01 00 00                                       ....
+
+13: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 07 05 00 00                                       ....
+
+14: [0x0 OUT] actual length = 0, buffer length = 0
+
+15: [0x81 IN] actual length = 2, buffer length = 4
+00000000: 10 00 00 00                                       ....
+
+16: [0x0 IN] actual length = 4, buffer length = 4
+00000000: 03 05 04 00                                       ....
+```
