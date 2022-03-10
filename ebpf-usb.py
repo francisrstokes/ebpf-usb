@@ -42,6 +42,7 @@ struct data_t {
 	u16 product;
 	u8 endpoint;
 	unsigned int transfer_flags;
+	u8 bmAttributes;
 	u8 buf [256];
 };
 
@@ -62,6 +63,7 @@ int kprobe____usb_hcd_giveback_urb(struct pt_regs *ctx, struct urb *urb) {
 	data.transfer_flags = urb->transfer_flags;
 	data.buflen = urb->transfer_buffer_length;
 	data.endpoint = urb->ep->desc.bEndpointAddress;
+	data.bmAttributes = urb->ep->desc.bmAttributes;
 
 	bpf_probe_read_kernel(data.buf, sizeof(data.buf), urb->transfer_buffer);
 	events.perf_submit(ctx, &data, sizeof(data));
@@ -76,10 +78,34 @@ def print_event(cpu, data, size):
 	global event_number
 	event = b["events"].event(data)
 	event_number += 1
-	print("%d: [0x%x %s] actual length = %d, buffer length = %d"
-		% (event_number, event.endpoint, get_endpoint_type(event.transfer_flags), event.alen, event.buflen))
+	print("%d: [0x%x %s] (%s) actual length = %d, buffer length = %d"
+		% (
+			event_number,
+			event.endpoint,
+			get_endpoint_type(event.transfer_flags),
+			get_transfer_type(event.bmAttributes),
+			event.alen,
+			event.buflen
+		))
 	hexdump(bytes(event.buf[0:event.buflen]))
 	print("")
+
+USB_ENDPOINT_XFERTYPE_MASK 	= 0x03
+USB_ENDPOINT_XFER_CONTROL 	= 0
+USB_ENDPOINT_XFER_ISOC 		= 1
+USB_ENDPOINT_XFER_BULK 		= 2
+USB_ENDPOINT_XFER_INT 		= 3
+
+def get_transfer_type(bmAttributes):
+	masked = bmAttributes & USB_ENDPOINT_XFERTYPE_MASK
+	if masked == USB_ENDPOINT_XFER_CONTROL:
+		return "CONTROL"
+	elif masked == USB_ENDPOINT_XFER_ISOC:
+		return "ISOC"
+	elif masked == USB_ENDPOINT_XFER_BULK:
+		return "BULK"
+	else:
+		return "INT"
 
 def get_endpoint_type(transfer_flags):
 	if transfer_flags & 0x0200:
