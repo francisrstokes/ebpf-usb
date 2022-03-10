@@ -43,10 +43,11 @@ struct data_t {
 	u8 endpoint;
 	unsigned int transfer_flags;
 	u8 bmAttributes;
-	u8 buf [256];
+	u8 buf [4096];
 };
 
 BPF_PERF_OUTPUT(events);
+BPF_PERCPU_ARRAY(data_struct, struct data_t, 1);
 
 int kprobe____usb_hcd_giveback_urb(struct pt_regs *ctx, struct urb *urb) {
 	// Perform a VID/PID check if configured to do so
@@ -54,19 +55,24 @@ int kprobe____usb_hcd_giveback_urb(struct pt_regs *ctx, struct urb *urb) {
 	// Perform endpoint type filtering if configured to do so
 	%s
 
-	struct data_t data = {};
+	int zero = 0;
+	struct data_t* data = data_struct.lookup(&zero);
+	if (!data)
+		return 0;
+
 	struct usb_device *dev = urb->dev;
 
-	data.vendor = dev->descriptor.idVendor;
-	data.product = dev->descriptor.idProduct;
-	data.alen = urb->actual_length;
-	data.transfer_flags = urb->transfer_flags;
-	data.buflen = urb->transfer_buffer_length;
-	data.endpoint = urb->ep->desc.bEndpointAddress;
-	data.bmAttributes = urb->ep->desc.bmAttributes;
+	data->vendor = dev->descriptor.idVendor;
+	data->product = dev->descriptor.idProduct;
+	data->alen = urb->actual_length;
+	data->transfer_flags = urb->transfer_flags;
+	data->buflen = urb->transfer_buffer_length;
+	data->endpoint = urb->ep->desc.bEndpointAddress;
+	data->bmAttributes = urb->ep->desc.bmAttributes;
 
-	bpf_probe_read_kernel(data.buf, sizeof(data.buf), urb->transfer_buffer);
-	events.perf_submit(ctx, &data, sizeof(data));
+	bpf_probe_read_kernel(&data->buf, sizeof(data->buf), urb->transfer_buffer);
+	events.perf_submit(ctx, data, sizeof(*data));
+
 	return 0;
 }
 """ % (vid_pid_check, endpoint_dir_check)
@@ -78,9 +84,11 @@ def print_event(cpu, data, size):
 	global event_number
 	event = b["events"].event(data)
 	event_number += 1
-	print("%d: [0x%x %s] (%s) actual length = %d, buffer length = %d"
+	print("%d: %04x:%04x [0x%02x %s] (%s) actual length = %d, buffer length = %d"
 		% (
 			event_number,
+			event.vendor,
+			event.product,
 			event.endpoint,
 			get_endpoint_type(event.transfer_flags),
 			get_transfer_type(event.bmAttributes),
