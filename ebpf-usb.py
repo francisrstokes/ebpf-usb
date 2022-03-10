@@ -13,6 +13,7 @@ parser.add_argument('--vendor-id', '-v', type=lambda x: int(x, 16), help='The ve
 parser.add_argument('--product-id', '-p', type=lambda x: int(x, 16), help='The product id, expressed in hex')
 parser.add_argument('--out-only', '-o', action='store_true', help='Filter out all incoming messages')
 parser.add_argument('--in-only', '-i', action='store_true', help='Filter out all outgoing messages')
+parser.add_argument('--truncate', '-t', action='store_true', help='Truncate hexdump buffer outputs to their actual length')
 
 args = parser.parse_args()
 
@@ -41,7 +42,7 @@ struct data_t {
 	u16 vendor;
 	u16 product;
 	u8 endpoint;
-	unsigned int transfer_flags;
+	u32 transfer_flags;
 	u8 bmAttributes;
 	u8 buf [4096];
 };
@@ -95,7 +96,7 @@ def print_event(cpu, data, size):
 			event.alen,
 			event.buflen
 		))
-	hexdump(bytes(event.buf[0:event.buflen]))
+	hexdump(bytes(event.buf[0 : event.alen if args.truncate else event.buflen]))
 	print("")
 
 USB_ENDPOINT_XFERTYPE_MASK 	= 0x03

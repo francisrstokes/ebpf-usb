@@ -5,7 +5,7 @@ Heavily based on: https://github.com/gpioblink/ebpf-usb-inspector
 ## Usage
 
 ```
-usage: ebpf-usb.py [-h] [--vendor-id VENDOR_ID] [--product-id PRODUCT_ID] [--out-only] [--in-only]
+usage: ebpf-usb [-h] [--vendor-id VENDOR_ID] [--product-id PRODUCT_ID] [--out-only] [--in-only] [--truncate]
 
 Monitor USB traffic using eBPF
 
@@ -17,6 +17,7 @@ options:
                         The product id, expressed in hex
   --out-only, -o        Filter out all incoming messages
   --in-only, -i         Filter out all outgoing messages
+  --truncate, -t        Truncate hexdump buffer outputs to their actual length
 ```
 
 ## Example output
