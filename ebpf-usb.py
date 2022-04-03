@@ -37,6 +37,14 @@ code = """
 #include <linux/usb.h>
 
 struct data_t {
+	// Control transfer specific data
+	u8 bRequestType;
+	u8 bRequest;
+	u16 wValue;
+	u16 wIndex;
+	u16 wLength;
+
+	// Common data
 	u64 alen;
 	u64 buflen;
 	u16 vendor;
@@ -63,6 +71,17 @@ int kprobe____usb_hcd_giveback_urb(struct pt_regs *ctx, struct urb *urb) {
 
 	struct usb_device *dev = urb->dev;
 
+	// If it's a control transfer, include that data too
+	// Otherwise that data can be any random garbage
+	if ((data->bmAttributes & 0x03) == 0) {
+		struct usb_ctrlrequest* ctrlrequest = (struct usb_ctrlrequest*)urb->setup_packet;
+		data->bRequestType = ctrlrequest->bRequestType;
+		data->bRequest = ctrlrequest->bRequest;
+		data->wValue = ctrlrequest->wValue;
+		data->wIndex = ctrlrequest->wIndex;
+		data->wLength = ctrlrequest->wLength;
+	}
+
 	data->vendor = dev->descriptor.idVendor;
 	data->product = dev->descriptor.idProduct;
 	data->alen = urb->actual_length;
@@ -85,18 +104,31 @@ def print_event(cpu, data, size):
 	global event_number
 	event = b["events"].event(data)
 	event_number += 1
+
+	transfer_type = get_transfer_type(event.bmAttributes)
+	endpoint_type = get_endpoint_type(event.transfer_flags)
+
 	print("%d: %04x:%04x [0x%02x %s] (%s) actual length = %d, buffer length = %d"
 		% (
 			event_number,
 			event.vendor,
 			event.product,
 			event.endpoint,
-			get_endpoint_type(event.transfer_flags),
-			get_transfer_type(event.bmAttributes),
+			endpoint_type,
+			transfer_type,
 			event.alen,
 			event.buflen
 		))
 	hexdump(bytes(event.buf[0 : event.alen if args.truncate else event.buflen]))
+	if transfer_type == "CONTROL":
+		print("bRequestType: 0x%02x bRequest: 0x%02x wValue: 0x%04x wIndex: 0x%04x wLength: 0x%04x"
+			% (
+				event.bRequestType,
+				event.bRequest,
+				event.wValue,
+				event.wIndex,
+				event.wLength,
+			))
 	print("")
 
 USB_ENDPOINT_XFERTYPE_MASK 	= 0x03
