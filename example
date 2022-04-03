@@ -1,24 +1,25 @@
 Starting capture [VID=unspecified and PID=unspecified]
-1: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 00 01 00 00                                       ....
+1: 0403:6014 [0x00 IN] (CONTROL) actual length = 2, buffer length = 2
+<GET_STATUS> wValue: 0x0000 wIndex: 0x0000 Dir=IN Type=Standard Recipient=Device
+00000000: 00 00                                             ..
 
-2: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 00 01 00 00                                       ....
+2: 0403:6014 [0x00 OUT] (CONTROL) actual length = 0, buffer length = 0
+<GET_STATUS> wValue: 0x0000 wIndex: 0x0000 Dir=OUT Type=Vendor Recipient=Device
 
-3: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 00 01 00 00                                       ....
+3: 0403:6014 [0x00 OUT] (CONTROL) actual length = 0, buffer length = 0
+<SET_FEATURE> wValue: 0x4138 wIndex: 0x0000 Dir=OUT Type=Vendor Recipient=Device
 
-4: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 07 05 00 00                                       ....
+4: 0403:6014 [0x00 OUT] (CONTROL) actual length = 0, buffer length = 0
+<GET_STATUS> wValue: 0x0000 wIndex: 0x0000 Dir=OUT Type=Vendor Recipient=Device
 
-5: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 00 01 00 00                                       ....
+5: 0403:6014 [0x00 OUT] (CONTROL) actual length = 0, buffer length = 0
+<SET_INTERFACE> wValue: 0x0000 wIndex: 0x0000 Dir=OUT Type=Vendor Recipient=Device
 
-6: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 00 01 00 00                                       ....
+6: 0403:6014 [0x00 OUT] (CONTROL) actual length = 0, buffer length = 0
+<SET_INTERFACE> wValue: 0x0200 wIndex: 0x0000 Dir=OUT Type=Vendor Recipient=Device
 
-7: 1d6b:0002 [0x00 IN] (CONTROL) actual length = 4, buffer length = 4
-00000000: 00 01 00 00                                       ....
+7: 0403:6014 [0x00 OUT] (CONTROL) actual length = 0, buffer length = 0
+<GET_STATUS> wValue: 0x0001 wIndex: 0x0000 Dir=OUT Type=Vendor Recipient=Device                  ....
 
 8: 1d6b:0002 [0x81 IN] (INT) actual length = 2, buffer length = 4
 00000000: 10 00 00 00                                       ....

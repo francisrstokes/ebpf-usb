@@ -119,17 +119,47 @@ def print_event(cpu, data, size):
 			event.alen,
 			event.buflen
 		))
-	hexdump(bytes(event.buf[0 : event.alen if args.truncate else event.buflen]))
+
 	if transfer_type == "CONTROL":
-		print("bRequestType: 0x%02x bRequest: 0x%02x wValue: 0x%04x wIndex: 0x%04x wLength: 0x%04x"
-			% (
-				event.bRequestType,
-				event.bRequest,
-				event.wValue,
-				event.wIndex,
-				event.wLength,
-			))
+		print_control_transfer_info(event)
+
+	hexdump(bytes(event.buf[0 : event.alen if args.truncate else event.buflen]))
 	print("")
+
+request_codes = [
+	"GET_STATUS",
+	"CLEAR_FEATURE",
+	"Reserved_0",
+	"SET_FEATURE",
+	"Reserved_1",
+	"SET_ADDRESS",
+	"GET_DESCRIPTOR",
+	"SET_DESCRIPTOR",
+	"GET_CONFIGURATION",
+	"SET_CONFIGURATION",
+	"GET_INTERFACE",
+	"SET_INTERFACE",
+	"SYNCH_FRAME",
+]
+def print_control_transfer_info(event):
+	req_dir = "IN" if event.bRequestType & 0x80 else "OUT"
+
+	req_type_bits = (event.bRequestType & 0x60) >> 5
+	req_type = "Standard" if req_type_bits == 0 else "Class" if req_type_bits == 1 else "Vendor"
+
+	req_recipient_bits = event.bRequestType & 0x0f
+	req_recipient = "Device" if req_recipient_bits == 0	else "Interface" if req_recipient_bits == 1 else "Endpoint" if req_recipient_bits == 2 else "Other"
+
+	req_code = request_codes[event.bRequest] if event.bRequest < len(request_codes) else "Error"
+
+	print("<%s> wValue: 0x%04x wIndex: 0x%04x Dir=%s Type=%s Recipient=%s" % (
+		req_code,
+		event.wValue,
+		event.wIndex,
+		req_dir,
+		req_type,
+		req_recipient,
+	))
 
 USB_ENDPOINT_XFERTYPE_MASK 	= 0x03
 USB_ENDPOINT_XFER_CONTROL 	= 0
